@@ -96,7 +96,7 @@ class ETH_Timeline {
 				'parent_item_colon'  => __( 'Entries:', 'eth-timeline' ),
 			),
 			'public'              => true,
-			'has_archive'         => true,
+			'has_archive'         => false,
 			'exclude_from_search' => true,
 			'show_in_nav_menus'   => false,
 			'show_in_admin_bar'   => true,
