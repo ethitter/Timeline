@@ -58,6 +58,7 @@ class ETH_Timeline {
 	private function setup() {
 		add_action( 'init', array( $this, 'action_init' ) );
 		add_action( 'save_post', array( $this, 'action_save_post' ) );
+		add_filter( 'enter_title_here', array( $this, 'filter_editor_title_prompt' ), 10, 2 );
 	}
 
 	/**
@@ -141,6 +142,23 @@ class ETH_Timeline {
 			else
 				delete_post_meta( $post_id, $this->meta_key_location );
 		}
+	}
+
+	/**
+	 * Provide better prompt text for the editor title field
+	 *
+	 * @param string $text
+	 * @param object $post
+	 * @uses get_post_type
+	 * @uses __
+	 * @filter enter_title_here
+	 * @return string
+	 */
+	public function filter_editor_title_prompt( $text, $post ) {
+		if ( $this->post_type == get_post_type( $post ) )
+			$text = __( 'Enter destination here', 'eth-timeline' );
+
+		return $text;
 	}
 
 	/**
