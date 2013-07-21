@@ -157,8 +157,11 @@ class ETH_Timeline {
 	 *
 	 */
 	public function meta_box_dates( $post ) {
-		$start = (int) get_post_meta( $post->ID, $this->meta_start, true );
-		$end = (int) get_post_meta( $post->ID, $this->meta_end, true );
+		$start = get_post_meta( $post->ID, $this->meta_start, true );
+		$start = is_numeric( $start ) ? (int) $start : '';
+
+		$end = get_post_meta( $post->ID, $this->meta_end, true );
+		$end = is_numeric( $end ) ? (int) $end : '';
 
 		?>
 		<p id="eth-timeline-startbox">
@@ -188,7 +191,7 @@ class ETH_Timeline {
 			foreach ( $dates as $key => $date ) {
 				// Timestamp comes from JS
 				if ( empty( $date ) )
-					$timestamp = 0;
+					$timestamp = false;
 				else
 					$timestamp = strtotime( $date );
 
