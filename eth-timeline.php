@@ -34,8 +34,8 @@ class ETH_Timeline {
 	private $post_type = 'eth_timeline';
 	// private $taxonomy = 'eth_timeline_event';
 
-	private $meta_start = '_timeline_start';
-	private $meta_end = '_timeline_end';
+	private $meta_start = '_eth_timeline_start';
+	private $meta_end = '_eth_timeline_end';
 
 	/**
 	 * Silence is golden!
@@ -140,7 +140,9 @@ class ETH_Timeline {
 		$screen = get_current_screen();
 
 		if ( is_object( $screen ) && ! is_wp_error( $screen ) && $this->post_type = $screen->post_type ) {
-			wp_enqueue_script( 'eth-timeline-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery', 'jquery-ui-datepicker' ), 20130721, false );
+			wp_enqueue_script( 'eth-timeline-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery', 'jquery-ui-datepicker' ), time(), false );
+
+			wp_enqueue_style( 'eth-timeline-admin', plugins_url( 'css/smoothness.min.css', __FILE__ ), array(), 20130721, 'screen' );
 		}
 	}
 
@@ -159,8 +161,20 @@ class ETH_Timeline {
 		$end = (int) get_post_meta( $post->ID, $this->meta_end, true );
 
 		?>
-		Date pickers go here.
+		<p id="eth-timeline-startbox">
+			<label for="eth-timeline-start"><?php _e( 'Start:', 'eth-timeline' ); ?></label>
+			<input type="text" name="eth-timeline-form[start]" id="eth-timeline-start" class="regular-text" value="<?php echo date( 'F j, Y', $start ); ?>" />
+			<input type="hidden" name="eth-timeline[start]" value="<?php echo $start * 1000; ?>" />
+		</p>
+
+		<p id="eth-timeline-endbox">
+			<label for="eth-timeline-end"><?php _e( 'End:', 'eth-timeline' ); ?></label>
+			<input type="text" name="eth-timeline-form[end]" id="eth-timeline-end" class="regular-text" value="<?php echo date( 'F j, Y', $end ); ?>" />
+			<input type="hidden" name="eth-timeline[end]" value="<?php echo $end * 1000; ?>" />
+		</p>
 		<?php
+
+		wp_nonce_field( $this->get_field_name( 'date' ), $this->get_nonce_name( 'date' ), false );
 	}
 
 	/**
@@ -170,14 +184,18 @@ class ETH_Timeline {
 		if ( $this->post_type != get_post_type( $post_id ) )
 			return;
 
-		// Location
-		if ( isset( $_POST[ $this->get_nonce_name( 'location' ) ] ) && wp_verify_nonce( $_POST[ $this->get_nonce_name( 'location' ) ], $this->meta_key_location ) ) {
-			$location = sanitize_text_field( $_POST[ $this->get_field_name( 'location' ) ] );
+		if ( isset( $_POST[ $this->get_nonce_name( 'date' ) ] ) && wp_verify_nonce( $_POST[ $this->get_nonce_name( 'date' ) ], $this->get_field_name( 'date' ) ) ) {
+			$dates = isset( $_POST['eth-timeline'] ) ? array_map( 'intval', $_POST['eth-timeline'] ) : array();
 
-			if ( $location )
-				update_post_meta( $post_id, $this->meta_key_location, $location );
-			else
-				delete_post_meta( $post_id, $this->meta_key_location );
+			foreach ( $dates as $key => $timestamp ) {
+				// Timestamp comes from JS
+				$timestamp = $timestamp / 1000;
+
+				if ( $timestamp )
+					update_post_meta( $post_id, $this->{'meta_' . $key}, $timestamp );
+				else
+					delete_post_meta( $post_id, $this->{'meta_' . $key} );
+			}
 		}
 	}
 
