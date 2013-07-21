@@ -65,6 +65,9 @@ class ETH_Timeline {
 		add_action( 'add_meta_boxes_' . $this->post_type, array( $this, 'action_add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'action_save_post' ) );
 
+		add_filter( 'manage_' . $this->post_type . '_posts_columns', array( $this, 'filter_list_table_columns' ) );
+		add_action( 'manage_' . $this->post_type . '_posts_custom_column', array( $this, 'do_list_table_columns' ), 10, 2 );
+
 		add_filter( 'enter_title_here', array( $this, 'filter_editor_title_prompt' ), 10, 2 );
 	}
 
@@ -134,7 +137,15 @@ class ETH_Timeline {
 	}
 
 	/**
+	 * Enqueue admin assets
 	 *
+	 * @uses get_current_screen
+	 * @uses is_wp_error
+	 * @uses wp_enqueue_script
+	 * @uses plugins_url
+	 * @uses wp_enqueue_style
+	 * @action admin_enqueue_scripts
+	 * @return null
 	 */
 	public function action_admin_enqueue_scripts() {
 		$screen = get_current_screen();
@@ -147,14 +158,27 @@ class ETH_Timeline {
 	}
 
 	/**
+	 * Register custom date metabox
 	 *
+	 * @uses add_meta_box
+	 * @action add_meta_boxes
+	 * @return null
 	 */
 	public function action_add_meta_boxes() {
 		add_meta_box( 'eth-timeline-dates', __( 'Dates', 'eth-timeline' ), array( $this, 'meta_box_dates' ), $this->post_type, 'normal', 'high' );
 	}
 
 	/**
+	 * Render dates metabox
 	 *
+	 * @param object $post
+	 * @uses get_post_meta
+	 * @uses _e
+	 * @uses wp_nonce_field
+	 * @uses ths::get_field_name
+	 * @uses this::get_nonce_name
+	 * @action add_meta_boxes_{$this->post_type}
+	 * @return string
 	 */
 	public function meta_box_dates( $post ) {
 		$start = get_post_meta( $post->ID, $this->meta_start, true );
@@ -179,7 +203,16 @@ class ETH_Timeline {
 	}
 
 	/**
+	 * Save custom dates
 	 *
+	 * @param int $post_id
+	 * @uses get_post_type
+	 * @uses this::get_nonce_name
+	 * @uses this::get_field_name
+	 * @uses update_post_meta
+	 * @uses delete_post_meta
+	 * @action save_post
+	 * @return null
 	 */
 	public function action_save_post( $post_id ) {
 		if ( $this->post_type != get_post_type( $post_id ) )
@@ -188,7 +221,13 @@ class ETH_Timeline {
 		if ( isset( $_POST[ $this->get_nonce_name( 'date' ) ] ) && wp_verify_nonce( $_POST[ $this->get_nonce_name( 'date' ) ], $this->get_field_name( 'date' ) ) ) {
 			$dates = isset( $_POST['eth-timeline'] ) ? $_POST['eth-timeline'] : array();
 
+			if ( empty( $dates ) )
+				return;
+
 			foreach ( $dates as $key => $date ) {
+				if ( ! in_array( $key, array( 'start', 'end' ) ) )
+					continue;
+
 				// Timestamp comes from JS
 				if ( empty( $date ) )
 					$timestamp = false;
@@ -200,6 +239,47 @@ class ETH_Timeline {
 				else
 					delete_post_meta( $post_id, $this->{'meta_' . $key} );
 			}
+		}
+	}
+
+	/**
+	 * Add new date columns to list table
+	 *
+	 * @param array $columns
+	 * @uses __
+	 * @filter manage_{$this->post_type}_posts_columns
+	 * @return array
+	 */
+	public function filter_list_table_columns( $columns ) {
+		$after = array_splice( $columns, 2 );
+
+		$new_columns = array(
+			'eth_timeline_start' => __( 'Start Date', 'eth-timeline' ),
+			'eth_timeline_end' => __( 'End Date (Optional)', 'eth-timeline' ),
+		);
+
+		$columns = $columns + $new_columns + $after;
+
+		return $columns;
+	}
+
+	/**
+	 * Display start and end dates in the post list table
+	 *
+	 * @param string $column
+	 * @param int $post_id
+	 * @uses get_post_meta
+	 * @uses get_option
+	 * @action manage_{$this->post_type}_posts_custom_column
+	 * @return string or null
+	 */
+	public function do_list_table_columns( $column, $post_id ) {
+		if ( in_array( $column, array( 'eth_timeline_start', 'eth_timeline_end' ) ) ) {
+			$key = str_replace( 'eth_timeline_', '', $column );
+			$date = get_post_meta( $post_id, $this->{'meta_' . $key}, true );
+
+			if ( is_numeric( $date ) )
+				echo date( get_option( 'date_format', 'F j, Y' ), $date );
 		}
 	}
 
