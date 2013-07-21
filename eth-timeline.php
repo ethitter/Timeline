@@ -61,6 +61,8 @@ class ETH_Timeline {
 	private function setup() {
 		add_action( 'init', array( $this, 'action_init' ) );
 
+		add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ) );
+
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts' ) );
 		add_action( 'add_meta_boxes_' . $this->post_type, array( $this, 'action_add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'action_save_post' ) );
@@ -134,6 +136,25 @@ class ETH_Timeline {
 		//		'hierarchical'      => true
 		//	)
 		// ) );
+	}
+
+	/**
+	 * Force all timeline queries to be sorted by start date.
+	 * Doesn't interfere with admin list table sorting.
+	 *
+	 * @param object $query
+	 * @uses is_admin
+	 * @action pre_get_posts
+	 * @return null
+	 */
+	public function action_pre_get_posts( $query ) {
+		if ( $this->post_type == $query->get( 'post_type' ) ) {
+			if ( is_admin() && isset( $_GET['orderby'] ) )
+				return;
+
+			$query->set( 'orderby', 'meta_value_num' );
+			$query->set( 'meta_key', $this->meta_start );
+		}
 	}
 
 	/**
