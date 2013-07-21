@@ -300,6 +300,7 @@ class ETH_Timeline {
 	 * @uses this::get_times
 	 * @uses the_ID
 	 * @uses this::format_date
+	 * @uses get_the_ID
 	 * @uses the_title
 	 * @uses get_the_content
 	 * @uses remove_filter
@@ -386,7 +387,7 @@ class ETH_Timeline {
 				// Info about the item
 				?>
 				<li class="eth-timeline-item" id="eth-timeline-<?php the_ID(); ?>">
-					<span class="eth-timeline-date"><?php echo $this->format_date( $times['start'], $year, $month ); ?>&ndash;<?php echo $this->format_date( $times['end'], $year, $month, false ); ?>:</span>
+					<span class="eth-timeline-date"><?php echo $this->format_date( get_the_ID(), $year, $month ); ?>:</span>
 					<span class="eth-timeline-location"><?php the_title(); ?></span>
 
 					<?php
@@ -442,8 +443,27 @@ class ETH_Timeline {
 	}
 
 	/**
+	 * Format entry dates for display
+	 *
+	 * @param int $post_id
+	 * @param int $loop_year
+	 * @param int $loop_month
+	 * @uses this::get_times
+	 * @uses this::format_single_date
+	 * @return string
+	 */
+	private function format_date( $post_id, $loop_year, $loop_month ) {
+		$times = $this->get_times( $post_id );
+
+		if ( empty( $times['end'] ) || $times['end'] <= $times['start'] ) {
+			return $this->format_single_date( $times['start'], $loop_year, $loop_month );
+		} else {
+			return $this->format_single_date( $times['start'], $loop_year, $loop_month ) . '&ndash;' . $this->format_single_date( $times['end'], $loop_year, $loop_month, false );
+		}
+	}
+
+	/**
 	 * Determine appropriate date format for display start and end dates together.
-	 * Prevents duplication of month or year.
 	 *
 	 * @param int $timestamp
 	 * @param int $loop_year
@@ -451,7 +471,7 @@ class ETH_Timeline {
 	 * @param bool $start
 	 * @return string
 	 */
-	private function format_date( $timestamp, $loop_year, $loop_month, $start = true ) {
+	private function format_single_date( $timestamp, $loop_year, $loop_month, $start = true ) {
 		$ts_year = date( 'Y', $timestamp );
 		$ts_month = date( 'n', $timestamp );
 
