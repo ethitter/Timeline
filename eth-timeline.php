@@ -109,10 +109,7 @@ class ETH_Timeline {
 			'exclude_from_search' => true,
 			'show_in_nav_menus'   => false,
 			'show_in_admin_bar'   => true,
-			'rewrite'             => array(
-				'slug'       => 'timeline',
-				'with_front' => false
-			),
+			'rewrite'             => false,
 			'supports'            => array(
 				'title',
 				'editor',
