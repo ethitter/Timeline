@@ -110,32 +110,6 @@ class ETH_Timeline {
 				'author',
 			)
 		) );
-
-		// register_taxonomy( $this->taxonomy, $this->post_type, array(
-		//	'label'              => __( 'Events', 'eth-timeline' ),
-		//	'labels'             => array(
-		//		'name'              => __( 'Events', 'eth-timeline' ),
-		//		'singular_name'     => __( 'Event', 'eth-timeline' ),
-		//		'search_items'      => __( 'Search Events', 'eth-timeline' ),
-		//		'all_items'         => __( 'All Events', 'eth-timeline' ),
-		//		'parent_item'       => __( 'Parent Event', 'eth-timeline' ),
-		//		'parent_item_colon' => __( 'Parent Event:', 'eth-timeline' ),
-		//		'edit_item'         => __( 'Edit Event', 'eth-timeline' ),
-		//		'update_item'       => __( 'Update Event', 'eth-timeline' ),
-		//		'add_new_item'      => __( 'Add New Event', 'eth-timeline' ),
-		//		'new_item_name'     => __( 'New Event Name', 'eth-timeline' ),
-		//		'menu_name'         => __( 'Events', 'eth-timeline' ),
-		//	),
-		//	'public'             => true,
-		//	'hierarchical'       => true,
-		//	'show_in_nav_menus'  => false,
-		//	'show_tagcloud'      => false,
-		//	'rewrite'            => array(
-		//		'slug'              => $this->taxonomy,
-		//		'with_front'        => false,
-		//		'hierarchical'      => true
-		//	)
-		// ) );
 	}
 
 	/**
