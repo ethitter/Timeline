@@ -349,6 +349,8 @@ class ETH_Timeline {
 
 			global $post;
 
+			echo '<div class="eth-timeline">';
+
 			$year = $month = null;
 
 			while ( $query->have_posts() ) {
@@ -359,31 +361,31 @@ class ETH_Timeline {
 				// Deal with grouping by year
 				if ( $year != date( 'Y', $times['start'] ) ) {
 					if ( null !== $year ) {
-						echo '</ul><!-- month --></ul><!-- year -->' . "\n";
+						echo '</ul><!-- ' . $year . '-' . $month . ' --></ul><!-- ' . $year . ' -->' . "\n";
 						$month = null;
 					}
 
 					$year = (int) date( 'Y', $times['start'] );
 
 					echo '<div class="eth-timline-year-label">' . $year . '</div>' . "\n";
-					echo '<ul class="eth-timeline eth-timeline-' . $year . '">' . "\n";
+					echo '<ul class="eth-timeline-year eth-timeline-' . $year . '">' . "\n";
 				}
 
 				// Deal with grouping by month
 				if ( $month != date( 'n', $times['start'] ) ) {
 					if ( null !== $month )
-						echo '</ul><!-- month --></li>' . "\n";
+						echo '</ul><!-- ' . $year . '-' . $month . ' --></li>' . "\n";
 
 					$month = (int) date( 'n', $times['start'] );
 
-					echo '<li class="eth-timeline eth-timeline-month eth-timeline-month-' . $month . '">';
+					echo '<li class="eth-timeline-month eth-timeline-month-' . $month . '">';
 					echo '<div class="eth-timeline-month-label">' . date( 'F', $times['start'] ) . '</div>' . "\n";
-					echo '<ul class="eth-timeline eth-timeline-' . $year . '-' . $month . '">' . "\n";
+					echo '<ul class="eth-timeline-month-items eth-timeline-' . $year . '-' . $month . '">' . "\n";
 				}
 
 				// Info about the item
 				?>
-				<li id="timeline-<?php the_ID(); ?>">
+				<li class="eth-timeline-item" id="eth-timeline-<?php the_ID(); ?>">
 					<span class="date"><?php echo $this->format_date( $times['start'], $year, $month ); ?>&ndash;<?php echo $this->format_date( $times['end'], $year, $month, false ); ?>:</span>
 					<span class="location"><?php the_title(); ?></span>
 
@@ -400,13 +402,15 @@ class ETH_Timeline {
 								add_filter( 'the_content', 'wpautop' );
 						}
 					?>
-				</li>
+				</li><!-- .eth-timeline-item#eth-timeline-<?php the_ID(); ?> -->
 				<?php
 			}
 
 			// Ensure our tags are balanced!
-			echo '</ul><!-- month -->';
-			echo '</ul><!-- year -->';
+			echo '</ul><!-- ' . $year . '-' . $month . ' -->';
+			echo '</ul><!-- ' . $year . ' -->';
+
+			echo '</div><!-- .eth-timeline -->';
 
 			wp_reset_query();
 			return ob_get_clean();
