@@ -110,6 +110,8 @@ class ETH_Timeline {
 				'author',
 			)
 		) );
+
+		add_shortcode( 'eth-timeline', array( $this, 'do_shortcode' ) );
 	}
 
 	/**
@@ -122,17 +124,18 @@ class ETH_Timeline {
 	 * @return null
 	 */
 	public function action_pre_get_posts( $query ) {
-		if ( $this->post_type == $query->get( 'post_type' ) ) {
+		if ( $query->is_main_query() && $this->post_type == $query->get( 'post_type' ) ) {
 			if ( is_admin() && isset( $_GET['orderby'] ) )
 				return;
 
 			$query->set( 'orderby', 'meta_value_num' );
 			$query->set( 'meta_key', $this->meta_start );
-
-			if ( ! is_admin() )
-				$query->set( 'posts_per_page', 100 );
 		}
 	}
+
+	/**
+	 ** ADMINISTRATION
+	 */
 
 	/**
 	 * Enqueue admin assets
@@ -253,7 +256,7 @@ class ETH_Timeline {
 
 		$new_columns = array(
 			'eth_timeline_start' => __( 'Start Date', 'eth-timeline' ),
-			'eth_timeline_end' => __( 'End Date (Optional)', 'eth-timeline' ),
+			'eth_timeline_end'   => __( 'End Date (Optional)', 'eth-timeline' ),
 		);
 
 		$columns = $columns + $new_columns + $after;
@@ -280,6 +283,71 @@ class ETH_Timeline {
 				echo date( get_option( 'date_format', 'F j, Y' ), $date );
 		}
 	}
+
+	/**
+	 ** PRESENTATION
+	 */
+
+	/**
+	 *
+	 */
+	public function do_shortcode( $atts ) {
+		// Parse and sanitize atts
+		$defaults = array(
+			'posts_per_page' => 100,
+			'order'          => 'DESC',
+			'year'           => null,
+		);
+
+		$atts = shortcode_atts( $defaults, $atts );
+
+		$atts['posts_per_page'] = min( 200, max( (int) $atts['posts_per_page'], 1 ) );
+		$atts['order']          = 'ASC' == $atts['order'] ? 'ASC' : 'DESC';
+		$atts['year']           = is_numeric( $atts['year'] ) ? (int) $atts['year'] : null;
+
+		// Build query
+		$query = array(
+			'post_type'      => $this->post_type,
+			'posts_per_page' => $atts['posts_per_page'],
+			'post_status'    => 'publish',
+			'order'          => $atts['order'],
+			'orderby'        => 'meta_value_num',
+			'meta_key'       => $this->meta_start
+		);
+
+		if ( $atts['year'] ) {
+			$query['meta_query'] = array(
+				array(
+					'key'     => $this->meta_start,
+					'value'   => array( strtotime( $atts['year'] . '-01-01 00:00:00' ), strtotime( $atts['year'] . '-12-31 23:59:59' ) ),
+					'type'    => 'numeric',
+					'compare' => 'BETWEEN'
+				)
+			);
+		}
+
+		// Run query and build output, if possible
+		$query = new WP_Query( $query );
+
+		if ( $query->have_posts() ) {
+			ob_start();
+
+			global $post;
+
+			while ( $query->have_posts() ) {
+				$query->the_post();
+
+				// output
+			}
+
+			wp_reset_query();
+			return ob_get_clean();
+		}
+	}
+
+	/**
+	 ** HELPERS
+	 */
 
 	/**
 	 * Provide better prompt text for the editor title field
