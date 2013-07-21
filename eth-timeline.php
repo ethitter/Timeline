@@ -58,6 +58,8 @@ class ETH_Timeline {
 	private function setup() {
 		add_action( 'init', array( $this, 'action_init' ) );
 		add_action( 'save_post', array( $this, 'action_save_post' ) );
+
+		add_filter( 'gettext', array( $this, 'filter_gettext' ) );
 		add_filter( 'enter_title_here', array( $this, 'filter_editor_title_prompt' ), 10, 2 );
 	}
 
@@ -142,6 +144,36 @@ class ETH_Timeline {
 			else
 				delete_post_meta( $post_id, $this->meta_key_location );
 		}
+	}
+
+	/**
+	 * Translate certain admin strings for relevance
+	 *
+	 * @param string $text
+	 * @uses is_admin
+	 * @uses get_current_screen
+	 * @uses is_wp_error
+	 * @filter gettext
+	 * @return string
+	 */
+	public function filter_gettext( $text ) {
+		if ( is_admin() && function_exists( 'get_current_screen' ) ) {
+			$screen = get_current_screen();
+
+			if ( is_object( $screen ) && ! is_wp_error( $screen ) && $this->post_type == $screen->post_type ) {
+				$text = str_replace( array(
+					'Published on',
+					'Publish',
+				), array(
+					'Start',
+					'Start'
+				), $text );
+			}
+
+
+		}
+
+		return $text;
 	}
 
 	/**
