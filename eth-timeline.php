@@ -317,7 +317,7 @@ class ETH_Timeline {
 			'year'           => null,
 		), $atts );
 
-		$atts['posts_per_page'] = min( 200, max( (int) $atts['posts_per_page'], 1 ) );
+		$atts['posts_per_page'] = min( 200, max( (int) $atts['posts_per_page'], -1 ) );
 		$atts['order']          = 'ASC' == $atts['order'] ? 'ASC' : 'DESC';
 		$atts['year']           = is_numeric( $atts['year'] ) ? (int) $atts['year'] : null;
 
