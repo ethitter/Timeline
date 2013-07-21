@@ -56,7 +56,11 @@ class ETH_Timeline {
 	}
 
 	/**
+	 * Register actions and filters
 	 *
+	 * @uses add_action
+	 * @uses add_filter
+	 * @return null
 	 */
 	private function setup() {
 		add_action( 'init', array( $this, 'action_init' ) );
@@ -74,7 +78,12 @@ class ETH_Timeline {
 	}
 
 	/**
+	 * Register post type and shortcode
 	 *
+	 * @uses register_post_type
+	 * @uses add_shortcode
+	 * @action init
+	 * @return null
 	 */
 	public function action_init() {
 		register_post_type( $this->post_type, array(
@@ -285,17 +294,30 @@ class ETH_Timeline {
 	 */
 
 	/**
+	 * Render list of timeline entries
 	 *
+	 * @global $post
+	 * @param mixed $atts
+	 * @uses shortcode_atts
+	 * @uses WP_Query
+	 * @uses this::get_times
+	 * @uses the_ID
+	 * @uses this::format_date
+	 * @uses the_title
+	 * @uses get_the_content
+	 * @uses remove_filter
+	 * @uses the_content
+	 * @uses add_filter
+	 * @uses wp_reset_query
+	 * @return string or null
 	 */
 	public function do_shortcode( $atts ) {
 		// Parse and sanitize atts
-		$defaults = array(
+		$atts = shortcode_atts( array(
 			'posts_per_page' => 100,
 			'order'          => 'DESC',
 			'year'           => null,
-		);
-
-		$atts = shortcode_atts( $defaults, $atts );
+		), $atts );
 
 		$atts['posts_per_page'] = min( 200, max( (int) $atts['posts_per_page'], 1 ) );
 		$atts['order']          = 'ASC' == $atts['order'] ? 'ASC' : 'DESC';
@@ -374,7 +396,7 @@ class ETH_Timeline {
 						if ( ! empty( $content ) ) {
 							$removed = remove_filter( 'the_content', 'wpautop' );
 
-							echo ' <span class="sep">for</span> ';
+							echo ' <span class="sep">&mdash;</span> ';
 							the_content();
 
 							if ( $removed )
@@ -383,8 +405,6 @@ class ETH_Timeline {
 					?>
 				</li>
 				<?php
-
-
 			}
 
 			// Ensure our tags are balanced!
@@ -420,7 +440,14 @@ class ETH_Timeline {
 	}
 
 	/**
+	 * Determine appropriate date format for display start and end dates together.
+	 * Prevents duplication of month or year.
 	 *
+	 * @param int $timestamp
+	 * @param int $loop_year
+	 * @param int $loop_month
+	 * @param bool $start
+	 * @return string
 	 */
 	private function format_date( $timestamp, $loop_year, $loop_month, $start = true ) {
 		$ts_year = date( 'Y', $timestamp );
