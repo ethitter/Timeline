@@ -154,6 +154,9 @@ class ETH_Timeline {
 
 			$query->set( 'orderby', 'meta_value_num' );
 			$query->set( 'meta_key', $this->meta_start );
+
+			if ( ! is_admin() )
+				$query->set( 'posts_per_page', 100 );
 		}
 	}
 
