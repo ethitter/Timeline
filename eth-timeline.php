@@ -34,6 +34,9 @@ class ETH_Timeline {
 	private $post_type = 'eth_timeline';
 	// private $taxonomy = 'eth_timeline_event';
 
+	private $meta_start = '_timeline_start';
+	private $meta_end = '_timeline_end';
+
 	/**
 	 * Silence is golden!
 	 */
@@ -58,10 +61,10 @@ class ETH_Timeline {
 	private function setup() {
 		add_action( 'init', array( $this, 'action_init' ) );
 
-		add_action( 'post_submitbox_misc_actions', array( $this, 'metabox_end_date' ), 5 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts' ) );
+		add_action( 'add_meta_boxes_' . $this->post_type, array( $this, 'action_add_meta_boxes' ) );
 		add_action( 'save_post', array( $this, 'action_save_post' ) );
 
-		add_filter( 'gettext', array( $this, 'filter_gettext' ) );
 		add_filter( 'enter_title_here', array( $this, 'filter_editor_title_prompt' ), 10, 2 );
 	}
 
@@ -133,28 +136,30 @@ class ETH_Timeline {
 	/**
 	 *
 	 */
-	public function metabox_end_date() {
+	public function action_admin_enqueue_scripts() {
 		$screen = get_current_screen();
 
-		if ( is_object( $screen ) && ! is_wp_error( $screen ) && $this->post_type == $screen->post_type )
-			$post_type_object = get_post_type_object( $screen->post_type );
+		if ( is_object( $screen ) && ! is_wp_error( $screen ) && $this->post_type = $screen->post_type ) {
+			wp_enqueue_script( 'eth-timeline-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery', 'jquery-ui-datepicker' ), 20130721, false );
+		}
+	}
 
-			// Borrowed from Core: http://core.trac.wordpress.org/browser/trunk/wp-admin/includes/meta-boxes.php?rev=24522#L153
-			$datef = __( 'M j, Y @ G:i' );
+	/**
+	 *
+	 */
+	public function action_add_meta_boxes() {
+		add_meta_box( 'eth-timeline-dates', __( 'Dates', 'eth-timeline' ), array( $this, 'meta_box_dates' ), $this->post_type, 'normal', 'high' );
+	}
 
-			// Need to set these based on postmeta
-			$stamp = 'End:';
-			$date = null;
-			// $data = date_i18n( $datef, strtotime( current_time('mysql') ) );
+	/**
+	 *
+	 */
+	public function meta_box_dates( $post ) {
+		$start = (int) get_post_meta( $post->ID, $this->meta_start, true );
+		$end = (int) get_post_meta( $post->ID, $this->meta_end, true );
 
-			if ( current_user_can( $post_type_object->cap->publish_posts ) ) : // Contributors don't get to choose the date of publish ?>
-			<div class="misc-pub-section endtime">
-				<span id="timestamp-end">
-				<?php printf($stamp, $date); ?></span>
-				<!-- <a href="#edit_timestamp_end" class="edit-timestamp-end hide-if-no-js"><?php _e('Edit') ?></a> -->
-				<div id="timestampdiv-end"><?php touch_time( ( $action == 'edit' ), 1, 1, true ); ?></div>
-			</div><?php // /misc-pub-section ?>
-		<?php endif; ?>
+		?>
+		Date pickers go here.
 		<?php
 	}
 
@@ -174,36 +179,6 @@ class ETH_Timeline {
 			else
 				delete_post_meta( $post_id, $this->meta_key_location );
 		}
-	}
-
-	/**
-	 * Translate certain admin strings for relevance
-	 *
-	 * @param string $text
-	 * @uses is_admin
-	 * @uses get_current_screen
-	 * @uses is_wp_error
-	 * @filter gettext
-	 * @return string
-	 */
-	public function filter_gettext( $text ) {
-		if ( is_admin() && function_exists( 'get_current_screen' ) ) {
-			$screen = get_current_screen();
-
-			if ( is_object( $screen ) && ! is_wp_error( $screen ) && $this->post_type == $screen->post_type ) {
-				$text = str_replace( array(
-					'Published on',
-					'Publish',
-				), array(
-					'Start',
-					'Start'
-				), $text );
-			}
-
-
-		}
-
-		return $text;
 	}
 
 	/**
