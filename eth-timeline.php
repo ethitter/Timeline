@@ -386,8 +386,8 @@ class ETH_Timeline {
 				// Info about the item
 				?>
 				<li class="eth-timeline-item" id="eth-timeline-<?php the_ID(); ?>">
-					<span class="date"><?php echo $this->format_date( $times['start'], $year, $month ); ?>&ndash;<?php echo $this->format_date( $times['end'], $year, $month, false ); ?>:</span>
-					<span class="location"><?php the_title(); ?></span>
+					<span class="eth-timeline-date"><?php echo $this->format_date( $times['start'], $year, $month ); ?>&ndash;<?php echo $this->format_date( $times['end'], $year, $month, false ); ?>:</span>
+					<span class="eth-timeline-location"><?php the_title(); ?></span>
 
 					<?php
 						$content = get_the_content();
@@ -395,8 +395,9 @@ class ETH_Timeline {
 						if ( ! empty( $content ) ) {
 							$removed = remove_filter( 'the_content', 'wpautop' );
 
-							echo ' <span class="sep">&mdash;</span> ';
+							echo ' <span class="eth-timeline-sep">&mdash;</span> <span class="eth-timeline-body">';
 							the_content();
+							echo '</span>';
 
 							if ( $removed )
 								add_filter( 'the_content', 'wpautop' );
