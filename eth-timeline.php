@@ -152,7 +152,7 @@ class ETH_Timeline {
 		$screen = get_current_screen();
 
 		if ( is_object( $screen ) && ! is_wp_error( $screen ) && $this->post_type = $screen->post_type ) {
-			wp_enqueue_script( 'eth-timeline-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery', 'jquery-ui-datepicker' ), time(), false );
+			wp_enqueue_script( 'eth-timeline-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery', 'jquery-ui-datepicker' ), 20130721, false );
 
 			wp_enqueue_style( 'eth-timeline-admin', plugins_url( 'css/smoothness.min.css', __FILE__ ), array(), 20130721, 'screen' );
 		}
@@ -182,21 +182,17 @@ class ETH_Timeline {
 	 * @return string
 	 */
 	public function meta_box_dates( $post ) {
-		$start = get_post_meta( $post->ID, $this->meta_start, true );
-		$start = is_numeric( $start ) ? (int) $start : '';
-
-		$end = get_post_meta( $post->ID, $this->meta_end, true );
-		$end = is_numeric( $end ) ? (int) $end : '';
+		$times = $this->get_times( $post->ID );
 
 		?>
 		<p id="eth-timeline-startbox">
 			<label for="eth-timeline-start"><?php _e( 'Start:', 'eth-timeline' ); ?></label>
-			<input type="text" name="eth-timeline[start]" id="eth-timeline-start" class="regular-text" style="width: 11em;" value="<?php echo date( 'F j, Y', $start ); ?>" />
+			<input type="text" name="eth-timeline[start]" id="eth-timeline-start" class="regular-text" style="width: 11em;" value="<?php echo date( 'F j, Y', $times['start'] ); ?>" />
 		</p>
 
 		<p id="eth-timeline-endbox">
 			<label for="eth-timeline-end"><?php _e( 'End:', 'eth-timeline' ); ?></label>
-			<input type="text" name="eth-timeline[end]" id="eth-timeline-end" class="regular-text" style="width: 11em;" value="<?php echo date( 'F j, Y', $end ); ?>" />
+			<input type="text" name="eth-timeline[end]" id="eth-timeline-end" class="regular-text" style="width: 11em;" value="<?php echo date( 'F j, Y', $times['end'] ); ?>" />
 		</p>
 		<?php
 
@@ -334,11 +330,66 @@ class ETH_Timeline {
 
 			global $post;
 
+			$year = $month = null;
+
 			while ( $query->have_posts() ) {
 				$query->the_post();
 
-				// output
+				$times = $this->get_times( $post->ID );
+
+				// Deal with grouping by year
+				if ( $year != date( 'Y', $times['start'] ) ) {
+					if ( null !== $year ) {
+						echo '</ul><!-- month --></ul><!-- year -->' . "\n";
+						$month = null;
+					}
+
+					$year = (int) date( 'Y', $times['start'] );
+
+					echo '<div class="eth-timline-year-label">' . $year . '</div>' . "\n";
+					echo '<ul class="eth-timeline eth-timeline-' . $year . '">' . "\n";
+				}
+
+				// Deal with grouping by month
+				if ( $month != date( 'n', $times['start'] ) ) {
+					if ( null !== $month )
+						echo '</ul><!-- month --></li>' . "\n";
+
+					$month = (int) date( 'n', $times['start'] );
+
+					echo '<li class="eth-timeline eth-timeline-month eth-timeline-month-' . $month . '">';
+					echo '<div class="eth-timeline-month-label">' . date( 'F', $times['start'] ) . '</div>' . "\n";
+					echo '<ul class="eth-timeline eth-timeline-' . $year . '-' . $month . '">' . "\n";
+				}
+
+				// Info about the item
+				?>
+				<li id="timeline-<?php the_ID(); ?>">
+					<span class="date"><?php echo $this->format_date( $times['start'], $year, $month ); ?>&ndash;<?php echo $this->format_date( $times['end'], $year, $month, false ); ?>:</span>
+					<span class="location"><?php the_title(); ?></span>
+
+					<?php
+						$content = get_the_content();
+
+						if ( ! empty( $content ) ) {
+							$removed = remove_filter( 'the_content', 'wpautop' );
+
+							echo ' <span class="sep">for</span> ';
+							the_content();
+
+							if ( $removed )
+								add_filter( 'the_content', 'wpautop' );
+						}
+					?>
+				</li>
+				<?php
+
+
 			}
+
+			// Ensure our tags are balanced!
+			echo '</ul><!-- month -->';
+			echo '</ul><!-- year -->';
 
 			wp_reset_query();
 			return ob_get_clean();
@@ -348,6 +399,43 @@ class ETH_Timeline {
 	/**
 	 ** HELPERS
 	 */
+
+	/**
+	 * Retrieve timestamps for a given entry
+	 *
+	 * @param int $post_id
+	 * @uses get_post_meta
+	 * @return array
+	 */
+	private function get_times( $post_id ) {
+		$post_id = (int) $post_id;
+
+		$start = get_post_meta( $post_id, $this->meta_start, true );
+		$start = is_numeric( $start ) ? (int) $start : '';
+
+		$end = get_post_meta( $post_id, $this->meta_end, true );
+		$end = is_numeric( $end ) ? (int) $end : '';
+
+		return compact( 'start', 'end' );
+	}
+
+	/**
+	 *
+	 */
+	private function format_date( $timestamp, $loop_year, $loop_month, $start = true ) {
+		$ts_year = date( 'Y', $timestamp );
+		$ts_month = date( 'n', $timestamp );
+
+		$format = 'j';
+
+		if ( $loop_year != $ts_year )
+			$format .= ', Y';
+
+		if ( $start || $loop_month != $ts_month )
+			$format = 'F ' . $format;
+
+		return date( $format, $timestamp );
+	}
 
 	/**
 	 * Provide better prompt text for the editor title field
