@@ -32,7 +32,6 @@ class ETH_Timeline {
 	 * Class variables
 	 */
 	private $post_type = 'eth_timeline';
-	// private $taxonomy = 'eth_timeline_event';
 
 	private $meta_start = '_eth_timeline_start';
 	private $meta_end = '_eth_timeline_end';
