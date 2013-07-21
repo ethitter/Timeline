@@ -57,6 +57,8 @@ class ETH_Timeline {
 	 */
 	private function setup() {
 		add_action( 'init', array( $this, 'action_init' ) );
+
+		add_action( 'post_submitbox_misc_actions', array( $this, 'metabox_end_date' ), 5 );
 		add_action( 'save_post', array( $this, 'action_save_post' ) );
 
 		add_filter( 'gettext', array( $this, 'filter_gettext' ) );
@@ -126,6 +128,34 @@ class ETH_Timeline {
 		//		'hierarchical'      => true
 		//	)
 		// ) );
+	}
+
+	/**
+	 *
+	 */
+	public function metabox_end_date() {
+		$screen = get_current_screen();
+
+		if ( is_object( $screen ) && ! is_wp_error( $screen ) && $this->post_type == $screen->post_type )
+			$post_type_object = get_post_type_object( $screen->post_type );
+
+			// Borrowed from Core: http://core.trac.wordpress.org/browser/trunk/wp-admin/includes/meta-boxes.php?rev=24522#L153
+			$datef = __( 'M j, Y @ G:i' );
+
+			// Need to set these based on postmeta
+			$stamp = 'End:';
+			$date = null;
+			// $data = date_i18n( $datef, strtotime( current_time('mysql') ) );
+
+			if ( current_user_can( $post_type_object->cap->publish_posts ) ) : // Contributors don't get to choose the date of publish ?>
+			<div class="misc-pub-section endtime">
+				<span id="timestamp-end">
+				<?php printf($stamp, $date); ?></span>
+				<!-- <a href="#edit_timestamp_end" class="edit-timestamp-end hide-if-no-js"><?php _e('Edit') ?></a> -->
+				<div id="timestampdiv-end"><?php touch_time( ( $action == 'edit' ), 1, 1, true ); ?></div>
+			</div><?php // /misc-pub-section ?>
+		<?php endif; ?>
+		<?php
 	}
 
 	/**
