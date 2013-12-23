@@ -130,8 +130,9 @@ class ETH_Timeline {
 	 */
 	public function action_pre_get_posts( $query ) {
 		if ( $query->is_main_query() && $this->post_type == $query->get( 'post_type' ) ) {
-			if ( is_admin() && isset( $_GET['orderby'] ) )
+			if ( is_admin() && isset( $_GET['orderby'] ) ) {
 				return;
+			}
 
 			$query->set( 'orderby', 'meta_value_num' );
 			$query->set( 'meta_key', $this->meta_start );
@@ -217,29 +218,34 @@ class ETH_Timeline {
 	 * @return null
 	 */
 	public function action_save_post( $post_id ) {
-		if ( $this->post_type != get_post_type( $post_id ) )
+		if ( $this->post_type != get_post_type( $post_id ) ) {
 			return;
+		}
 
 		if ( isset( $_POST[ $this->get_nonce_name( 'date' ) ] ) && wp_verify_nonce( $_POST[ $this->get_nonce_name( 'date' ) ], $this->get_field_name( 'date' ) ) ) {
 			$dates = isset( $_POST['eth-timeline'] ) ? $_POST['eth-timeline'] : array();
 
-			if ( empty( $dates ) )
+			if ( empty( $dates ) ) {
 				return;
+			}
 
 			foreach ( $dates as $key => $date ) {
-				if ( ! in_array( $key, array( 'start', 'end' ) ) )
+				if ( ! in_array( $key, array( 'start', 'end' ) ) ) {
 					continue;
+				}
 
 				// Timestamp comes from JS
-				if ( empty( $date ) )
+				if ( empty( $date ) ) {
 					$timestamp = false;
-				else
+				} else {
 					$timestamp = strtotime( $date );
+				}
 
-				if ( $timestamp )
+				if ( $timestamp ) {
 					update_post_meta( $post_id, $this->{'meta_' . $key}, $timestamp );
-				else
+				} else {
 					delete_post_meta( $post_id, $this->{'meta_' . $key} );
+				}
 			}
 		}
 	}
@@ -280,8 +286,9 @@ class ETH_Timeline {
 			$key = str_replace( 'eth_timeline_', '', $column );
 			$date = get_post_meta( $post_id, $this->{'meta_' . $key}, true );
 
-			if ( is_numeric( $date ) )
+			if ( is_numeric( $date ) ) {
 				echo date( get_option( 'date_format', 'F j, Y' ), $date );
+			}
 		}
 	}
 
@@ -373,8 +380,9 @@ class ETH_Timeline {
 
 				// Deal with grouping by month
 				if ( $month != date( 'n', $times['start'] ) ) {
-					if ( null !== $month )
+					if ( null !== $month ) {
 						echo '</ul><!-- ' . $year . '-' . $month . ' --></li>' . "\n";
+					}
 
 					$month = (int) date( 'n', $times['start'] );
 
@@ -399,8 +407,9 @@ class ETH_Timeline {
 							the_content();
 							echo '</span>';
 
-							if ( $removed )
+							if ( $removed ) {
 								add_filter( 'the_content', 'wpautop' );
+							}
 						}
 					?>
 				</li><!-- .eth-timeline-item#eth-timeline-<?php the_ID(); ?> -->
@@ -476,11 +485,13 @@ class ETH_Timeline {
 
 		$format = 'j';
 
-		if ( $loop_year != $ts_year )
+		if ( $loop_year != $ts_year ) {
 			$format .= ', Y';
+		}
 
-		if ( $start || $loop_month != $ts_month )
+		if ( $start || $loop_month != $ts_month ) {
 			$format = 'F ' . $format;
+		}
 
 		return date( $format, $timestamp );
 	}
@@ -496,8 +507,9 @@ class ETH_Timeline {
 	 * @return string
 	 */
 	public function filter_editor_title_prompt( $text, $post ) {
-		if ( $this->post_type == get_post_type( $post ) )
+		if ( $this->post_type == get_post_type( $post ) ) {
 			$text = __( 'Enter destination here', 'eth-timeline' );
+		}
 
 		return $text;
 	}
