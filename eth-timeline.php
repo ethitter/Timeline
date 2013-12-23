@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: ETH Timeline
-Plugin URI: http://www.ethitter.com/plugins/
-Description: List travel destinations
+Plugin URI: https://ethitter.com/plugins/
+Description: List whereabouts by year and month
 Author: Erick Hitter
 Version: 0.2
-Author URI: http://www.ethitter.com/
+Author URI: https://ethitter.com/
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
