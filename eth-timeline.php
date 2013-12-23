@@ -4,7 +4,7 @@ Plugin Name: ETH Timeline
 Plugin URI: http://www.ethitter.com/plugins/
 Description: List travel destinations
 Author: Erick Hitter
-Version: 0.1
+Version: 0.2
 Author URI: http://www.ethitter.com/
 
 This program is free software; you can redistribute it and/or modify
@@ -464,34 +464,41 @@ class ETH_Timeline {
 		$times = $this->get_times( $post_id );
 
 		if ( empty( $times['end'] ) || $times['end'] <= $times['start'] ) {
-			return $this->format_single_date( $times['start'], $loop_year, $loop_month );
+			return $this->format_single_date( $times['start'], false, true );
 		} else {
-			return $this->format_single_date( $times['start'], $loop_year, $loop_month ) . '&ndash;' . $this->format_single_date( $times['end'], $loop_year, $loop_month, false );
+			$start_year  = date( 'Y', $times['start'] );
+			$end_year    = date( 'Y', $times['end'] );
+			$end_month   = date( 'n', $times['end'] );
+
+			$show_start_year  = ( $start_year != $end_year ) || ( $start_year != $loop_year );
+			$show_end_year    = ( $start_year != $end_year ) || ( $end_year != $loop_year );
+			$show_end_month   = $show_end_year || ( $end_month != $loop_month );
+
+			return $this->format_single_date( $times['start'], $show_start_year, true ) . '&ndash;' . $this->format_single_date( $times['end'], $show_end_year, $show_end_month );
 		}
 	}
 
 	/**
-	 * Determine appropriate date format for display start and end dates together.
+	 * Format timestamp into display date.
 	 *
 	 * @param int $timestamp
-	 * @param int $loop_year
-	 * @param int $loop_month
-	 * @param bool $start
+	 * @param bool $show_year
+	 * @param bool $show_month
+	 * @uses apply_filters
 	 * @return string
 	 */
-	private function format_single_date( $timestamp, $loop_year, $loop_month, $start = true ) {
-		$ts_year = date( 'Y', $timestamp );
-		$ts_month = date( 'n', $timestamp );
-
+	private function format_single_date( $timestamp, $show_year = false, $show_month = false ) {
 		$format = 'j';
 
-		if ( $loop_year != $ts_year ) {
+		if ( $show_year ) {
 			$format .= ', Y';
 		}
 
-		if ( $start || $loop_month != $ts_month ) {
+		if ( $show_month ) {
 			$format = 'F ' . $format;
 		}
+
+		$format = apply_filters( 'eth_timeline_date_format', $format, $show_year, $show_month, $timestamp );
 
 		return date( $format, $timestamp );
 	}
