@@ -157,7 +157,7 @@ class ETH_Timeline {
 	public function action_admin_enqueue_scripts() {
 		$screen = get_current_screen();
 
-		if ( is_object( $screen ) && ! is_wp_error( $screen ) && $this->post_type = $screen->post_type ) {
+		if ( is_object( $screen ) && ! is_wp_error( $screen ) && $this->post_type === $screen->post_type && 'post' === $screen->base ) {
 			wp_enqueue_script( 'eth-timeline-admin', plugins_url( 'js/admin.js', __FILE__ ), array( 'jquery', 'jquery-ui-datepicker' ), 20130721, false );
 
 			wp_enqueue_style( 'eth-timeline-admin', plugins_url( 'css/smoothness.min.css', __FILE__ ), array(), 20130721, 'screen' );
