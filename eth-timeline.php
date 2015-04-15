@@ -402,6 +402,7 @@ class ETH_Timeline {
 
 						if ( ! empty( $content ) ) {
 							$removed = remove_filter( 'the_content', 'wpautop' );
+							add_filter( 'sharing_show', '__return_false' );
 
 							echo ' <span class="eth-timeline-sep">&mdash;</span> <span class="eth-timeline-body">';
 							the_content();
@@ -410,6 +411,7 @@ class ETH_Timeline {
 							if ( $removed ) {
 								add_filter( 'the_content', 'wpautop' );
 							}
+							remove_filter( 'sharing_show', '__return_false' );
 						}
 					?>
 				</li><!-- .eth-timeline-item#eth-timeline-<?php the_ID(); ?> -->
