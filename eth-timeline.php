@@ -193,12 +193,12 @@ class ETH_Timeline {
 		?>
 		<p id="eth-timeline-startbox">
 			<label for="eth-timeline-start"><?php _e( 'Start:', 'eth-timeline' ); ?></label>
-			<input type="text" name="eth-timeline[start]" id="eth-timeline-start" class="regular-text" style="width: 11em;" value="<?php echo date( 'F j, Y', $times['start'] ); ?>" />
+			<input type="text" name="eth-timeline[start]" id="eth-timeline-start" class="regular-text" style="width: 11em;" value="<?php echo ! empty( $times['start'] ) ? date( 'F j, Y', $times['start'] ) : ''; ?>" />
 		</p>
 
 		<p id="eth-timeline-endbox">
 			<label for="eth-timeline-end"><?php _e( 'End:', 'eth-timeline' ); ?></label>
-			<input type="text" name="eth-timeline[end]" id="eth-timeline-end" class="regular-text" style="width: 11em;" value="<?php echo date( 'F j, Y', $times['end'] ); ?>" />
+			<input type="text" name="eth-timeline[end]" id="eth-timeline-end" class="regular-text" style="width: 11em;" value="<?php echo ! empty( $times['end'] ) ? date( 'F j, Y', $times['end'] ) : ''; ?>" />
 		</p>
 		<?php
 
